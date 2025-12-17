@@ -1,0 +1,61 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Rapport envoyé</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'control/css/styles.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: 'Ubuntu', sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding-top: 70px;
+        }
+        .container {
+            max-width: 960px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        h2 {
+            color: #458651;
+            margin-bottom: 20px;
+        }
+        .success-message {
+            color: green;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+        .btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 20px;
+            background-color: #458651;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: 0.2s;
+        }
+        .btn:hover {
+            background-color: #346a3f;
+        }
+    </style>
+</head>
+<body>
+{% include 'control/header.html' %}
+<div class="container">
+    <h2>Rapport envoyé avec succès</h2>
+    <div class="success-message">
+        Votre rapport a été envoyé avec succès.
+    </div>
+    <a href="{% url 'control:creer-rapport' %}" class="btn">Retour aux rapports</a>
+    <a href="{% url 'control:predict-image-html' %}" class="btn">Nouvelle analyse</a>
+</div>
+</body>
+</html>

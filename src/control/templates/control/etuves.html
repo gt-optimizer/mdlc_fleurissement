@@ -1,0 +1,109 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion des étuves</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'control/css/styles.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: 'Ubuntu', sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding-top: 70px;
+        }
+        .container {
+            max-width: 960px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #458651;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #79b8b1;
+            color: white;
+        }
+        .form-container {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .form-container input {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        .form-container button {
+            padding: 8px 15px;
+            background-color: #458651;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .form-container button:hover {
+            background-color: #346a3f;
+        }
+        .delete-btn {
+            background-color: #d9534f;
+        }
+        .delete-btn:hover {
+            background-color: #c9302c;
+        }
+    </style>
+</head>
+<body>
+    {% include 'control/header.html' %}
+    <div class="container">
+        <h2>Gestion des étuves</h2>
+        <form method="POST" class="form-container">
+            {% csrf_token %}
+            <input type="number" name="numero" placeholder="Numéro de l'étuve" required>
+            <button type="submit">Ajouter</button>
+        </form>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Numéro</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for etuve in etuves %}
+                <tr>
+                    <td>{{ etuve.id }}</td>
+                    <td>{{ etuve.numero }}</td>
+                    <td>
+                        <form method="POST" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="delete_id" value="{{ etuve.id }}">
+                            <button type="submit" class="delete-btn">Supprimer</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="{% url 'control:predict-image-html' %}" style="display: block; text-align: center; margin-top: 20px; color: #458651; text-decoration: none;">Retour à l'analyse</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,167 @@
+/* ===== Police et body ===== */
+body {
+    font-family: 'Ubuntu', sans-serif;
+    background: #f5f5f5;
+    margin: 0;
+    padding-top: 70px; /* espace pour le header fixe */
+}
+
+/* ===== Container ===== */
+.container {
+    max-width: 960px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+/* ===== Titres et boutons ===== */
+h2 {
+    color: #458651;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin: 5px;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.btn-24 { background-color: #458651; color: white; }
+.btn-48 { background-color: #79b8b1; color: white; }
+.btn-all { background-color: #346a3f; color: white; }
+.btn-none { background-color: #d9534f; color: white; }
+
+.submit-btn {
+    background-color: #458651;
+    color: white;
+    width: 100%;
+    padding: 12px;
+    font-size: 18px;
+    margin-top: 20px;
+    border-radius: 8px;
+}
+
+/* ===== Textarea ===== */
+textarea {
+    width: 100%;
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    font-family: 'Ubuntu', sans-serif;
+}
+
+/* ===== Tableau classique ===== */
+.table-container {
+    overflow-x: auto;
+    margin-top: 15px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: center;
+}
+
+th {
+    background-color: #79b8b1;
+    color: white;
+}
+
+/* ===== Images miniatures ===== */
+.thumbnail {
+    max-width: 100px;
+    max-height: 100px;
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+/* ===== Modal ===== */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.8);
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.modal-content {
+    max-width: 95vw;
+    max-height: 95vh;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    object-fit: contain;
+    animation: zoom 0.3s;
+}
+
+@keyframes zoom {
+    from {transform: scale(0.7);}
+    to {transform: scale(1);}
+}
+
+.modal-close {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    color: white;
+    font-size: 30px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.modal-close:hover {
+    color: #ddd;
+}
+
+/* ===== Responsive mobile ===== */
+@media (max-width: 600px) {
+    table, thead, tbody, th, td, tr { display: block; width: 100%; }
+    thead tr { display: none; }
+    tr { margin-bottom: 15px; background: #eefaf7; border-radius: 8px; padding: 10px; }
+    td {
+        text-align: left;
+        padding: 5px 10px;
+        border: none;
+        border-bottom: 1px solid #ccc;
+        position: relative;
+    }
+    td:before {
+        position: absolute;
+        left: 10px;
+        width: 45%;
+        white-space: nowrap;
+        font-weight: bold;
+    }
+    td:nth-of-type(1):before { content: "Sélection"; }
+    td:nth-of-type(2):before { content: "Date/Heure"; }
+    td:nth-of-type(3):before { content: "Image"; }
+    td:nth-of-type(4):before { content: "Stade prédit"; }
+    td:nth-of-type(5):before { content: "Phase"; }
+    td:nth-of-type(6):before { content: "Temps restant"; }
+    td:nth-of-type(7):before { content: "Étuve"; }
+    td:nth-of-type(8):before { content: "Recommandation"; }
+    td { padding-left: 50%; }
+}
+
+/* ===== Masquer lignes anciennes ===== */
+.hidden-row { display: none; }

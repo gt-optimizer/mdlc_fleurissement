@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <img src="{% static 'control/logo.png' %}" alt="Logo">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - Analyse Étuvage</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Ubuntu', sans-serif;
+            background-color: #79b8b1;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: #fff;
+        }
+        header {
+            background-color: #458651;
+            width: 100%;
+            padding: 1rem;
+            text-align: center;
+        }
+        header img {
+            height: 60px;
+        }
+        main {
+            background-color: rgba(0,0,0,0.2);
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            box-sizing: border-box;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        input {
+            padding: 0.8rem;
+            border-radius: 8px;
+            border: none;
+            font-size: 1rem;
+        }
+        button {
+            padding: 0.8rem;
+            background-color: #458651;
+            color: white;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .error {
+            color: #ffcccc;
+            text-align: center;
+            font-weight: bold;
+        }
+        @media (orientation: landscape) {
+            main {
+                width: 60%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="{% static 'control/logo.png' %}" alt="Logo">
+    </header>
+    <main>
+        <h1>Connexion</h1>
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <input type="text" name="username" placeholder="Nom d'utilisateur" required>
+            <input type="password" name="password" placeholder="Mot de passe" required>
+            <button type="submit">Se connecter</button>
+        </form>
+    </main>
+</body>
+</html>

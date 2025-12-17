@@ -1,0 +1,191 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Prévisualisation du rapport</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght=300;400;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: 'Ubuntu', sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding-top: 70px;
+        }
+        .container {
+            max-width: 960px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #458651;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .submit-btn {
+            background-color: #458651;
+            color: white;
+            width: 100%;
+            padding: 12px;
+            font-size: 18px;
+            margin-top: 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+        }
+        .destinataire-select {
+            margin-top: 20px;
+        }
+        .destinataire-select label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .destinataire-select select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        .table-container { overflow-x: auto; margin-top: 15px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+        th { background-color: #79b8b1; color: white; }
+        .commentaires {
+            margin-top: 20px;
+        }
+        .commentaires label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .commentaires textarea {
+            width: 100%;
+            border-radius: 8px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            font-family: 'Ubuntu', sans-serif;
+        }
+        .thumbnail {
+            max-width: 100px;
+            max-height: 100px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .thumbnail:hover {
+            transform: scale(1.05);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        .modal-content {
+            max-width: 90vw;
+            max-height: 90vh;
+            width: auto;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            object-fit: contain;
+            animation: zoom 0.3s;
+        }
+        @keyframes zoom {
+            from { transform: scale(0.7); }
+            to { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+{% include 'control/header.html' %}
+
+<div class="container">
+    <h2>Prévisualisation du rapport</h2>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date/Heure</th>
+                    <th>Image</th>
+                    <th>Stade prédit</th>
+                    <th>Phase</th>
+                    <th>Temps restant</th>
+                    <th>Étuve</th>
+                    <th>Recommandation</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in analyses %}
+                <tr>
+                    <td>{{ a.datetime|date:"d/m/y \\à H:i" }}</td>
+                    <td>
+                        {% if a.image %}
+                            <img src="{{ a.image.url }}" alt="Image de l'analyse" class="thumbnail" onclick="openModal('{{ a.image.url }}')">
+                        {% else %}
+                            Pas d'image
+                        {% endif %}
+                    </td>
+                    <td>{{ a.stade_pred }}</td>
+                    <td>{{ a.phase_etuvage }}</td>
+                    <td>{{ a.temps_restant }}</td>
+                    <td>{{ a.etuve }}</td>
+                    <td>{{ a.recommendation }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="commentaires">
+        <label>Commentaires :</label>
+        <textarea name="commentaires" rows="4" readonly>{{ commentaires }}</textarea>
+    </div>
+    <form method="POST" action="{% url 'control:envoyer-rapport' %}">
+        {% csrf_token %}
+        <div class="destinataire-select">
+            <label>Destinataire :</label>
+            <select name="destinataire" required>
+                <option value="">Sélectionner un destinataire</option>
+                {% for contact in contacts %}
+                    <option value="{{ contact.id }}">{{ contact.destinataire }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="submit-btn">Envoyer le rapport</button>
+    </form>
+</div>
+
+<!-- Modal -->
+<div id="imgModal" class="modal" onclick="closeModal(event)">
+    <img class="modal-content" id="modalImage">
+</div>
+
+<script>
+function openModal(imgUrl) {
+    const modal = document.getElementById("imgModal");
+    const modalImg = document.getElementById("modalImage");
+    modal.style.display = "flex";
+    modalImg.src = imgUrl;
+}
+
+function closeModal(event) {
+    if(event.target.id === 'imgModal'){
+        event.target.style.display = "none";
+    }
+}
+</script>
+</body>
+</html>

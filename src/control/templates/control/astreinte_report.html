@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Rapport d'astreinte</title>
+    <style>
+        body { font-family: 'Ubuntu', sans-serif; }
+        h2 { color: #458651; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #79b8b1; color: white; }
+    </style>
+</head>
+<script src="{% static 'control/header.js' %}"></script>
+<body>
+{% include 'control/header.html' %}
+    <h2>Rapport d'astreinte - {{ astreinte.date|date:"d/m/Y H:i" }}</h2>
+    <p>Utilisateur : {{ astreinte.user.username }}</p>
+    <p>Commentaires : {{ astreinte.commentaires }}</p>
+
+    {% if predictions %}
+    <h3>Prédictions pendant l'astreinte</h3>
+    <table>
+        <tr>
+            <th>Stade</th>
+            <th>Phase</th>
+            <th>Temps restant</th>
+            <th>Recommandation</th>
+        </tr>
+        {% for p in predictions %}
+        <tr>
+            <td>{{ p.stade_pred }}</td>
+            <td>{{ p.phase_etuvage }}</td>
+            <td>{{ p.temps_restant }} min</td>
+            <td>{{ p.recommendation }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+</body>
+</html>ml>

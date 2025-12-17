@@ -1,0 +1,91 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        h2 {
+            text-align: center;
+            color: #458651;
+            margin-bottom: 10px;
+        }
+        .header-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .analysis-container {
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            page-break-inside: avoid;
+        }
+        .analysis-info {
+            margin-bottom: 10px;
+        }
+        .analysis-info p {
+            margin: 5px 0;
+        }
+        .analysis-image {
+            text-align: center;
+            margin-top: 10px;
+        }
+        .analysis-image img {
+            width: 150px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        .commentaires {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background-color: #f9f9f9;
+        }
+        .commentaires h3 {
+            color: #458651;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Rapport d'astreinte</h2>
+
+    <div class="header-info">
+        <p><strong>Date du rapport :</strong> {{ astreinte.date|date:"d/m/Y H:i" }}</p>
+        <p><strong>Utilisateur :</strong> {{ astreinte.user.username }}</p>
+    </div>
+
+    {% for a in analyses %}
+    <div class="analysis-container">
+        <div class="analysis-info">
+            <p><strong>Date/Heure :</strong> {{ a.datetime|date:"d/m/Y H:i" }}</p>
+            <p><strong>Numéro d'étuve :</strong> {{ a.etuve }}</p>
+            <p><strong>Phase :</strong> {{ a.phase_etuvage }}</p>
+            <p><strong>Temps restant :</strong> {{ a.temps_restant }} min</p>
+        </div>
+        <div class="analysis-image">
+            {% if a.image %}
+                <img src="file://{{ a.image.path }}" alt="Image de l'analyse">
+            {% else %}
+                <p>Pas d'image</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+
+    {% if commentaires %}
+        <div class="commentaires">
+            <h3>Commentaires :</h3>
+            <p>{{ commentaires }}</p>
+        </div>
+    {% endif %}
+</body>
+</html>

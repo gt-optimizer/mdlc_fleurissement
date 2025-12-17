@@ -1,0 +1,189 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Optimizer Labs - Accueil</title>
+<link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'control/css/styles.css' %}">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body {
+    font-family: 'Ubuntu', sans-serif;
+    background: #f5f5f5;
+    margin: 0;
+    padding-top: 70px;
+}
+.main-container {
+    max-width: 600px;
+    margin: auto;
+    background: white;
+    padding: 40px 20px;
+    border-radius: 12px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    text-align: center;
+}
+h1 { color: #458651; margin-bottom: 20px; }
+p { font-size: 1.1rem; color: #333; margin-bottom: 30px; }
+a.button, button.button {
+    display: inline-block;
+    padding: 12px 25px;
+    background-color: #458651;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: 0.2s;
+    border: none;
+    cursor: pointer;
+}
+a.button:hover, button.button:hover { background-color: #346a3f; }
+
+.logout-btn {
+    display: inline-block;
+    padding: 12px 25px;
+    background-color: #d9534f;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: 0.2s;
+    border: none; /* pour button */
+    cursor: pointer;
+}
+.logout-btn:hover {
+    color: #ccc;
+}
+
+/* ===== Modal login ===== */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    justify-content: center; align-items: center;
+}
+.modal-content {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    position: relative;
+}
+.modal-content input {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+.modal-content button {
+    padding: 10px 20px;
+    background-color: #458651;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.modal-content button:hover { background-color: #346a3f; }
+
+/* ===== Toast messages ===== */
+.toast {
+    visibility: hidden;
+    min-width: 250px;
+    margin-left: -125px;
+    background-color: #d9534f;
+    color: white;
+    text-align: center;
+    border-radius: 6px;
+    padding: 16px;
+    position: fixed;
+    z-index: 2000;
+    left: 50%;
+    bottom: 30px;
+    font-size: 16px;
+}
+.toast.show {
+    visibility: visible;
+    animation: fadein 0.5s, fadeout 0.5s 4s;
+}
+@keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 30px; opacity: 1; } }
+@keyframes fadeout { from { bottom: 30px; opacity: 1; } to { bottom: 0; opacity: 0; } }
+</style>
+</head>
+<body>
+{% include 'control/header.html' %}
+
+<div class="main-container">
+    <h1>Bienvenue sur Optimizer Labs - fleurissement</h1>
+    <img src="{% static 'control/logo70x70.jpg' %}" alt="Logo" />
+    <p>Analysez facilement vos étuvages et créez des rapports en quelques clics.</p>
+
+    {% if user.is_authenticated %}
+        <a href="{% url 'control:predict-image-html' %}" class="button">Commencer l'analyse</a>
+        <br><br>
+        <form method="POST" action="{% url 'control:logout' %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="logout-btn">Déconnexion</button>
+        </form>
+    {% else %}
+        <button class="button" onclick="openLoginModal()">Se connecter</button>
+    {% endif %}
+</div>
+
+<!-- Modal login -->
+<div id="loginModal" class="modal">
+    <div class="modal-content">
+        <h2>Connexion</h2>
+        <form method="POST" action="{% url 'control:login' %}">
+            {% csrf_token %}
+            <input type="text" name="username" placeholder="Nom d'utilisateur" required>
+            <input type="password" name="password" placeholder="Mot de passe" required>
+            <button type="submit">Se connecter</button>
+        </form>
+    </div>
+</div>
+
+<!-- Toast message -->
+<div id="toast" class="toast"></div>
+
+<script>
+function openLoginModal() {
+    document.getElementById('loginModal').style.display = 'flex';
+}
+
+// Ouvre le modal automatiquement si l'utilisateur n'est pas connecté
+{% if not user.is_authenticated %}
+    openLoginModal();
+{% endif %}
+
+// Fermer modal si clic à l'extérieur
+window.onclick = function(event) {
+    const modal = document.getElementById('loginModal');
+    if (event.target === modal) {
+        modal.style.display = 'none';
+    }
+};
+
+// Fonction pour afficher un toast
+function showToast(message) {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.className = "toast show";
+    setTimeout(() => { toast.className = toast.className.replace("show",""); }, 4500);
+}
+
+// Exemple : afficher un toast si login échoue (passer le message depuis la vue Django)
+{% if messages %}
+    {% for message in messages %}
+        showToast("{{ message }}");
+    {% endfor %}
+{% endif %}
+</script>
+
+</body>
+</html>

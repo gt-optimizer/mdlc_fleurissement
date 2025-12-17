@@ -1,0 +1,225 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Analyse d'étuvage</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght=300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'control/css/styles.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+    font-family: 'Ubuntu', sans-serif;
+    background: #f5f5f5;
+    margin: 0;
+    padding-top: 70px; /* Compense la hauteur du header */
+        }
+        .main-container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 40px 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        h1 {
+            color: #458651;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 1.1rem;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 15px;
+        }
+
+        select, input[type="number"], input[type="file"], button.submit-btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            box-sizing: border-box;
+        }
+
+        button.submit-btn {
+            background-color: #458651;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button.submit-btn:hover {
+            background-color: #346a3f;
+        }
+
+        .phase-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .phase-btn {
+            padding: 15px;
+            background-color: #79b8b1;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            color: white;
+            cursor: pointer;
+            text-align: center;
+            transition: 0.2s;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .phase-btn.selected {
+            background-color: #458651;
+        }
+
+        .preview {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .preview img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .result {
+            margin-top: 25px;
+            background: #eefaf7;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        a {
+            display: block;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #458651;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    {% include 'control/header.html' %}
+
+    <div class="main-container">
+        <h2>Analyse d'étuvage</h2>
+        <a href="{% url 'control:creer-rapport' %}">Créer un rapport d'astreinte</a>
+        <form id="predictForm" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <!-- Étuve -->
+            <label>Numéro d'étuve :</label>
+            <select name="etuve" required>
+                <option value="">Sélectionner...</option>
+                {% for e in etuves %}
+                    <option value="{{ e.id }}">{{ e }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- Phase -->
+            <label>Phase d'étuvage :</label>
+            <input type="hidden" id="phase_input" name="phase">
+            <div class="phase-buttons">
+                {% if phases %}
+                    {% for p in phases %}
+                        <button type="button" id="phase_btn_Phase_{{ p.phase }}" class="phase-btn"
+                                onclick="selectPhase('Phase_{{ p.phase }}')">
+                            Phase {{ p.phase|floatformat:0 }}
+                        </button>
+                    {% endfor %}
+                {% else %}
+                    <p>Aucune phase disponible.</p>
+                {% endif %}
+            </div>
+
+            <!-- Temps restant -->
+            <label>Temps restant en minutes (ne remplir que pour la phase 8) :</label>
+            <input type="number" name="temps_restant" min="0" max="3000" value="0">
+
+            <!-- Photo / Appareil photo -->
+            <label>Photo de l'étuve :</label>
+            <input type="file" name="image" accept="image/*" capture="environment"
+                   onchange="previewPhoto(this)" required>
+            <div class="preview">
+                <img id="photoPreview" src="" style="display:none;" alt="Prévisualisation de la photo">
+            </div>
+
+            <!-- Bouton envoyer -->
+            <button type="submit" class="submit-btn">Analyser</button>
+        </form>
+        <div id="result" class="result" style="display:none;"></div>
+    </div>
+
+    <script>
+        function selectPhase(value) {
+            let phaseNum = parseInt(value.replace("Phase_", ""), 10);
+            document.getElementById("phase_input").value = phaseNum;
+            document.querySelectorAll(".phase-btn").forEach(btn => btn.classList.remove("selected"));
+            document.getElementById("phase_btn_" + value).classList.add("selected");
+            console.log("Phase sélectionnée: " + phaseNum);
+        }
+
+        function previewPhoto(input) {
+            const preview = document.getElementById("photoPreview");
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = "block";
+                };
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                preview.src = "";
+                preview.style.display = "none";
+            }
+        }
+
+        document.getElementById("predictForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            let formData = new FormData(this);
+            fetch("{% url 'control:predict-image-post' %}", {
+                method: "POST",
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                let resultDiv = document.getElementById("result");
+                resultDiv.style.display = "block";
+                if (data.error) {
+                    resultDiv.innerHTML = "<strong>Erreur :</strong> " + data.error;
+                    return;
+                }
+                resultDiv.innerHTML = `
+                    <h3>Résultat</h3>
+                    <p><strong>Stade prédit :</strong> ${data.prediction}</p>
+                    <p><strong>Recommandation :</strong><br>${data.recommendation}</p>
+                    <p><strong>Phase :</strong> ${data.phase}</p>
+                    <p><strong>Temps restant :</strong> ${data.temps_restant} min</p>
+                    <p><strong>Étuve :</strong> ${data.etuve}</p>
+                `;
+            })
+            .catch(err => {
+                const resultDiv = document.getElementById("result");
+                resultDiv.style.display = "block";
+                resultDiv.innerHTML = "<strong>Erreur :</strong> " + err;
+            });
+        });
+    </script>
+</body>
+</html>

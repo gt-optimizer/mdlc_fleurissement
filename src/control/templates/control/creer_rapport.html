@@ -1,0 +1,231 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Créer un rapport d'astreinte</title>
+<link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'control/css/styles.css' %}">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+/* ======= Général ======= */
+body {
+    font-family: 'Ubuntu', sans-serif;
+    background: #f5f5f5;
+    margin: 0;
+    padding-top: 70px;
+}
+h2 {
+    text-align: center;
+    color: #458651;
+    margin-bottom: 20px;
+}
+label { font-weight: bold; display: block; margin-top: 15px; }
+textarea { width: 100%; border-radius: 8px; padding: 10px; margin-top: 5px; border: 1px solid #ccc; font-family: 'Ubuntu', sans-serif; }
+
+/* ======= Boutons ======= */
+button { padding: 10px 15px; border: none; border-radius: 8px; cursor: pointer; margin: 5px; font-size: 1rem; font-weight: 500; }
+.btn-24 { background-color: #458651; color: white; }
+.btn-48 { background-color: #79b8b1; color: white; }
+.btn-all { background-color: #346a3f; color: white; }
+.btn-none { background-color: #d9534f; color: white; }
+.submit-btn { background-color: #458651; color: white; width: 100%; padding: 12px; font-size: 18px; margin-top: 20px; border-radius: 8px; }
+
+/* ======= Table ======= */
+.table-container { overflow-x: auto; margin-top: 15px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+th { background-color: #79b8b1; color: white; }
+
+/* Responsive mobile */
+@media (max-width: 600px) {
+    table, thead, tbody, th, td, tr { display: block; width: 100%; }
+    thead tr { display: none; }
+    tr { margin-bottom: 15px; background: #eefaf7; border-radius: 8px; padding: 10px; }
+    td { text-align: left; padding: 5px 10px; border: none; border-bottom: 1px solid #ccc; position: relative; padding-left: 50%; }
+    td:before { position: absolute; left: 10px; width: 45%; white-space: nowrap; font-weight: bold; }
+    td:nth-of-type(1):before { content: "Sélection"; }
+    td:nth-of-type(2):before { content: "Date/Heure"; }
+    td:nth-of-type(3):before { content: "Image"; }
+    td:nth-of-type(4):before { content: "Stade prédit"; }
+    td:nth-of-type(5):before { content: "Phase"; }
+    td:nth-of-type(6):before { content: "Temps restant"; }
+    td:nth-of-type(7):before { content: "Étuve"; }
+    td:nth-of-type(8):before { content: "Recommandation"; }
+}
+
+/* Miniatures */
+.thumbnail { max-width: 100px; max-height: 100px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+.thumbnail:hover { transform: scale(1.05); }
+
+/* Modal overlay */
+.modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); justify-content: center; align-items: center; padding: 10px; box-sizing: border-box; }
+
+/* Modal image */
+.modal-content { max-width: 90vw; max-height: 90vh; width: auto; height: auto; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.5); object-fit: contain; animation: zoom 0.3s; }
+@keyframes zoom { from { transform: scale(0.7); } to { transform: scale(1); } }
+
+#reportModal { display: none; position: fixed; z-index: 1002; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.5); }
+#reportModal .modal-content { background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 1000px; max-height: 80vh; overflow-y: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+#reportModal .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+#reportModal .close:hover { color: black; }
+</style>
+</head>
+<body>
+{% include 'control/header.html' %}
+
+<div class="container">
+    <h2>Créer un rapport d'astreinte</h2>
+    <form id="rapportForm" method="POST" action="{% url 'control:creer-rapport' %}">
+        {% csrf_token %}
+        <div style="margin-bottom:15px;">
+            <button type="button" class="btn-24" onclick="selectLast(24)">Dernières 24h</button>
+            <button type="button" class="btn-48" onclick="selectLast(48)">Dernières 48h</button>
+            <button type="button" class="btn-all" onclick="selectAll()">Tout sélectionner</button>
+            <button type="button" class="btn-none" onclick="deselectAll()">Tout désélectionner</button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Sélection</th>
+                        <th>Date/Heure</th>
+                        <th>Image</th>
+                        <th>Stade prédit</th>
+                        <th>Phase</th>
+                        <th>Temps restant</th>
+                        <th>Étuve</th>
+                        <th>Recommandation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in analyses %}
+                        <tr class="analyse-row" data-datetime="{{ a.datetime|date:'c' }}">
+                            <td><input type="checkbox" name="analyses" value="{{ a.id }}"></td>
+                            <td>{{ a.datetime|date:"d/m/y \\à H:i" }}</td>
+                            <td>
+                                {% if a.image %}
+                                    <img src="{{ a.image.url }}" alt="Image de l'analyse" class="thumbnail" onclick="openModal(this)">
+                                {% else %}
+                                    Pas d'image
+                                {% endif %}
+                            </td>
+                            <td>{{ a.stade_pred }}</td>
+                            <td>{{ a.phase_etuvage }}</td>
+                            <td>{{ a.temps_restant }}</td>
+                            <td>{{ a.etuve }}</td>
+                            <td>{{ a.recommendation }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <button type="button" onclick="showHistory()" style="margin-top:10px;">Voir l'historique complet</button>
+
+        <label>Commentaires :</label>
+        <textarea name="commentaires" rows="4"></textarea>
+        <button type="button" class="submit-btn" onclick="previewReport()">Prévisualiser le rapport</button>
+    </form>
+</div>
+
+<!-- Modal -->
+<div id="imgModal" class="modal" onclick="closeModal(event)">
+    <img class="modal-content" id="modalImage">
+</div>
+
+<div id="reportModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeReportModal()">&times;</span>
+
+        <div id="modalReportContent"></div>
+
+        <!-- BOUTON ENVOI -->
+        <form method="POST" action="{% url 'control:envoyer-rapport' %}" style="margin-top:20px;">
+            {% csrf_token %}
+            <input type="hidden" name="selected_ids" id="selected_ids_input">
+            <input type="hidden" name="commentaires" id="commentaires_input">
+
+            <button type="submit" class="submit-btn">
+                Envoyer le rapport
+            </button>
+        </form>
+    </div>
+</div>
+
+<script src="{% static 'control/header.js' %}"></script>
+<script>
+// Sélection rapide
+function selectLast(hours){
+    const now = new Date();
+    document.querySelectorAll('input[name="analyses"]').forEach(cb => {
+        const tr = cb.closest('tr');
+        const date = new Date(tr.dataset.datetime);
+        const diffH = (now - date) / 1000 / 3600;
+        cb.checked = diffH <= hours;
+    });
+}
+function selectAll(){ document.querySelectorAll('input[name="analyses"]').forEach(cb => cb.checked = true); }
+function deselectAll(){ document.querySelectorAll('input[name="analyses"]').forEach(cb => cb.checked = false); }
+function showHistory(){ document.querySelectorAll('.hidden-row').forEach(tr => tr.style.display = 'table-row'); }
+window.addEventListener('DOMContentLoaded', () => {
+    const now = new Date();
+    document.querySelectorAll('.analyse-row').forEach(tr => {
+        const date = new Date(tr.dataset.datetime);
+        const diffH = (now - date)/1000/3600;
+        if(diffH > 48) tr.classList.add('hidden-row');
+    });
+});
+
+// Modal
+function openModal(img){
+    const modal = document.getElementById("imgModal");
+    const modalImg = document.getElementById("modalImage");
+    modal.style.display = "flex";
+    modalImg.src = img.src;
+}
+function closeModal(event){
+    if(event.target.id === 'imgModal'){ event.target.style.display = "none"; }
+}
+function closeReportModal() { document.getElementById('reportModal').style.display = 'none'; }
+window.onclick = function(event) {
+    const modal = document.getElementById('reportModal');
+    if (event.target === modal) { modal.style.display = 'none'; }
+}
+
+// Prévisualisation rapport
+function previewReport() {
+    const selectedAnalyses = [];
+    document.querySelectorAll('input[name="analyses"]:checked').forEach(cb => selectedAnalyses.push(cb.value));
+    if (selectedAnalyses.length === 0) { alert("Veuillez sélectionner au moins une analyse."); return; }
+
+    const commentaires = document.querySelector('textarea[name="commentaires"]').value;
+
+    fetch("{% url 'control:get-report' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({ selected_ids: selectedAnalyses, commentaires: commentaires })
+    })
+    .then(response => response.text())
+    .then(html => {
+        if (html.trim().startsWith('{')) {
+            const error = JSON.parse(html);
+            alert(error.error);
+            return;
+        }
+        document.getElementById('modalReportContent').innerHTML = html;
+        document.getElementById('selected_ids_input').value = JSON.stringify(selectedAnalyses);
+        document.getElementById('commentaires_input').value = commentaires;
+        document.getElementById('reportModal').style.display = 'block';
+    })
+    .catch(() => {
+        alert("Une erreur est survenue lors de la génération du rapport");
+    });
+}
+</script>
+</body>
+</html>
