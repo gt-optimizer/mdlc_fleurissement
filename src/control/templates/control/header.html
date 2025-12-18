@@ -9,25 +9,21 @@
             </div>
         </a>
 
-        <!-- Menu principal -->
+        <!-- Menu principal (visible uniquement sur les grands écrans) -->
         <nav class="main-menu">
             <a href="{% url 'control:predict-image-html' %}">Analyse</a>
             <a href="{% url 'control:creer-rapport' %}">Rapports</a>
         </nav>
 
-        <!-- Burger menu -->
+        <!-- Burger menu (toujours visible) -->
         <div class="burger-container">
             <button class="menu-toggle" onclick="toggleMenu()">☰</button>
             <nav class="burger-menu">
-                <a href="{% url 'control:landing' %}">Accueil</a>
                 <a href="{% url 'control:predict-image-html' %}">Analyse</a>
                 <a href="{% url 'control:creer-rapport' %}">Rapports</a>
                 <a href="{% url 'control:manage-contacts' %}">Contacts</a>
                 <a href="{% url 'control:manage-etuves' %}">Étuves</a>
-                <form method="POST" action="{% url 'control:logout' %}" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="logout-btn">Déconnexion</button>
-                </form>
+                <a href="{% url 'control:logout' %}">Déconnexion</a>
             </nav>
         </div>
     </div>
@@ -119,13 +115,15 @@
     }
 
     .menu-toggle {
-        display: none;
+        display: flex;
         font-size: 1.5rem;
         background: none;
         border: none;
         cursor: pointer;
         color: #333;
         padding: 5px;
+        align-items: center;
+        justify-content: center;
     }
 
     .burger-menu {
@@ -160,9 +158,6 @@
     @media (max-width: 768px) {
         .main-menu {
             display: none;
-        }
-        .menu-toggle {
-            display: flex;
         }
     }
 </style>

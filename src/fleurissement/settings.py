@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'control',
+    'whitenoise'
 ]
 
 MIDDLEWARE = [
@@ -164,6 +165,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "astreinte_loste@optimizer-labs.fr"
 EMAIL_HOST_PASSWORD = blebleble
+DEFAULT_FROM_EMAIL = "astreinte_loste@optimizer-labs.fr"
 
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
