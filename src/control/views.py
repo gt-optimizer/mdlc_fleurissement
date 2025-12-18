@@ -19,6 +19,7 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from weasyprint import HTML
 from django.conf import settings
+from django.core.paginator import Paginator
 
 
 from reportlab.lib import colors
@@ -224,13 +225,22 @@ class PredictImagePageView(View):
 @method_decorator(login_required, name='dispatch')
 class CreerRapportAstreinteView(View):
     def get(self, request):
-        analyses = PredictionHistory.objects.filter(
-            datetime__gte=timezone.now() - timezone.timedelta(hours=48),
-            user=request.user
-        ).order_by('-datetime')
-        return render(request, "control/creer_rapport.html", {
-            "analyses": analyses,
-        })
+        analyses = (
+            PredictionHistory.objects
+            .order_by("-datetime")   # les plus récentes d'abord
+        )
+
+        paginator = Paginator(analyses, 25)  # 25 lignes par page
+        page_obj = paginator.get_page(request.GET.get("page"))
+
+        return render(
+            request,
+            "control/creer_rapport.html",
+            {
+                "analyses": page_obj,   # IMPORTANT
+                "page_obj": page_obj,
+            }
+        )
 
     def post(self, request):
         selected_ids = request.POST.getlist('analyses')

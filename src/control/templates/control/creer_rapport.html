@@ -185,6 +185,17 @@
                                 <td>{{ a.etuve }}</td>
                                 <td>{{ a.recommendation }}</td>
                             </tr>
+                        <div style="text-align:center; margin-top:20px;">
+                            {% if page_obj.has_previous %}
+                                <a href="?page={{ page_obj.previous_page_number }}">← Précédent</a>
+                            {% endif %}
+
+                            <span>Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+
+                            {% if page_obj.has_next %}
+                                <a href="?page={{ page_obj.next_page_number }}">Suivant →</a>
+                            {% endif %}
+                        </div>
                         {% endfor %}
                     </tbody>
                 </table>
