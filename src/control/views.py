@@ -228,10 +228,8 @@ class CreerRapportAstreinteView(View):
             datetime__gte=timezone.now() - timezone.timedelta(hours=48),
             user=request.user
         ).order_by('-datetime')
-        contacts = Destinataire.objects.all()  # <-- on récupère tous les destinataires
         return render(request, "control/creer_rapport.html", {
             "analyses": analyses,
-            "contacts": contacts  # <-- on passe la variable au template
         })
 
     def post(self, request):
@@ -240,32 +238,76 @@ class CreerRapportAstreinteView(View):
 
         if not selected_ids:
             messages.error(request, "Veuillez sélectionner au moins une analyse pour créer un rapport.")
-            return redirect(reverse('control:creer-rapport'))
+            return redirect('control:creer-rapport')
 
-        request.session["rapport_data"] = {
-            "selected_ids": selected_ids,
-            "commentaires": commentaires
-        }
-        return redirect(reverse('control:preview-rapport'))
+        analyses = PredictionHistory.objects.filter(id__in=selected_ids)
+
+        # Récupérer tous les destinataires
+        destinataires = Destinataire.objects.all()
+
+        if not destinataires:
+            messages.error(request, "Aucun destinataire configuré.")
+            return redirect('control:creer-rapport')
+
+        # Création de l'astreinte enregistrée
+        astreinte = Astreinte.objects.create(
+            user=request.user,
+            date=timezone.now(),
+            commentaires=commentaires
+        )
+        astreinte.destinataires.set(destinataires)
+
+        # Génération du PDF
+        pdf_file = self.generate_pdf_report(analyses, commentaires, astreinte)
+
+        # Préparation email
+        subject = f"Rapport d'astreinte - {astreinte.date.strftime('%d/%m/%Y %H:%M')}"
+        message = (
+            "Bonjour,\n\n"
+            "Veuillez trouver ci-joint le rapport d’astreinte.\n\n"
+            "Cordialement,\nL'équipe Optimizer Labs"
+        )
+
+        try:
+            # Envoyer le rapport à tous les destinataires
+            for destinataire in destinataires:
+                email = EmailMessage(
+                    subject=subject,
+                    body=message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    to=[destinataire.destinataire],
+                )
+                email.attach(
+                    f"rapport_astreinte_{astreinte.date.strftime('%Y%m%d_%H%M')}.pdf",
+                    pdf_file.getvalue(),
+                    "application/pdf"
+                )
+                email.send(fail_silently=False)
+
+            messages.success(request, "Rapport envoyé avec succès à tous les destinataires !")
+        except Exception as e:
+            messages.error(request, f"Erreur lors de l'envoi du mail : {e}")
+            return redirect('control:creer-rapport')
+
+        return redirect('control:creer-rapport')
 
 
-@method_decorator(login_required, name='dispatch')
-class PreviewRapportAstreinteView(View):
-    def get(self, request):
-        """Affiche un aperçu du rapport avant envoi."""
-        data = request.session.get("rapport_data")
-        if not data:
-            messages.error(request, "Aucune donnée de rapport trouvée. Veuillez recommencer.")
-            return redirect("control:creer-rapport")
-
-        analyses = PredictionHistory.objects.filter(id__in=data["selected_ids"])
-        contacts = Destinataire.objects.all()
-
-        return render(request, "control/preview_rapport.html", {
-            "analyses": analyses,
-            "commentaires": data["commentaires"],
-            "contacts": contacts
+    def generate_pdf_report(self, analyses, commentaires, astreinte):
+        # Rendre le template HTML
+        html_content = render_to_string('control/pdf_report.html', {
+            'analyses': analyses,
+            'commentaires': commentaires,
+            'astreinte': astreinte
         })
+
+        # Générer le PDF
+        pdf_file = BytesIO()
+        HTML(string=html_content, base_url=self.request.build_absolute_uri()).write_pdf(pdf_file)
+
+        # Retourner le contenu du PDF
+        pdf_file.seek(0)
+        return pdf_file
+
 
 def generate_pdf_report(analyses, commentaires, astreinte):
     # Rendre le template HTML

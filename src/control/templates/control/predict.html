@@ -9,10 +9,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         body {
-    font-family: 'Ubuntu', sans-serif;
-    background: #f5f5f5;
-    margin: 0;
-    padding-top: 70px; /* Compense la hauteur du header */
+            font-family: 'Ubuntu', sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding-top: 70px; /* Compense la hauteur du header */
         }
         .main-container {
             max-width: 600px;
@@ -23,7 +23,7 @@
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             text-align: center;
         }
-        h1 {
+        h2 {
             color: #458651;
             margin-bottom: 20px;
         }
@@ -113,6 +113,35 @@
             text-decoration: none;
             font-weight: bold;
         }
+
+        .camera-options {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .camera-options button {
+            flex: 1;
+            margin: 0 5px;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background-color: #79b8b1;
+            color: white;
+            cursor: pointer;
+        }
+
+        .camera-options button:first-child {
+            background-color: #458651;
+        }
+
+        .camera-options button:last-child {
+            background-color: #346a3f;
+        }
+
+        #cameraInput, #galleryInput {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -149,13 +178,17 @@
             </div>
 
             <!-- Temps restant -->
-            <label>Temps restant en minutes (ne remplir que pour la phase 8) :</label>
+            <label>Temps restant (minutes) :</label>
             <input type="number" name="temps_restant" min="0" max="3000" value="0">
 
             <!-- Photo / Appareil photo -->
             <label>Photo de l'étuve :</label>
-            <input type="file" name="image" accept="image/*" capture="environment"
-                   onchange="previewPhoto(this)" required>
+            <div class="camera-options">
+                <button type="button" onclick="document.getElementById('cameraInput').click()">Prendre une photo</button>
+                <button type="button" onclick="document.getElementById('galleryInput').click()">Choisir une photo</button>
+            </div>
+            <input type="file" id="cameraInput" name="image" accept="image/*" capture="environment" onchange="previewPhoto(this)">
+            <input type="file" id="galleryInput" name="image" accept="image/*" onchange="previewPhoto(this)">
             <div class="preview">
                 <img id="photoPreview" src="" style="display:none;" alt="Prévisualisation de la photo">
             </div>
